@@ -1,0 +1,55 @@
+from PIL import Image
+import numpy as np
+
+def encrypt_image(image_path, shift_value, swap_value):
+    # Open the image
+    img = Image.open(image_path)
+    img = img.convert("RGB")
+    data = np.array(img)
+    
+    # Encrypt the image by shifting and swapping pixels
+    encrypted_data = (data + shift_value) % 256
+    
+    # Swap pixels for encryption
+    encrypted_data[:, ::swap_value], encrypted_data[:, 1::swap_value] = encrypted_data[:, 1::swap_value], encrypted_data[:, ::swap_value].copy()
+    
+    encrypted_image = Image.fromarray(encrypted_data.astype('uint8'), 'RGB')
+    return encrypted_image
+
+def decrypt_image(encrypted_image, shift_value, swap_value):
+    # Convert the encrypted image to numpy array
+    data = np.array(encrypted_image)  
+    # Reverse swap pixels
+    data[:, ::swap_value], data[:, 1::swap_value] = data[:, 1::swap_value], data[:, ::swap_value].copy()
+    
+    # Decrypt the image by shifting pixels back
+    decrypted_data = (data - shift_value) % 256
+    
+    decrypted_image = Image.fromarray(decrypted_data.astype('uint8'), 'RGB')
+    return decrypted_image
+
+def main():
+    print("Welcome to the Image Encryption/Decryption Tool!")
+    
+    # Get user inputs
+    image_path = input("Enter the path to the image file: ")
+    shift_value = int(input("Enter the shift value for pixel encryption: "))
+    swap_value = int(input("Enter the swap value for pixel encryption: "))
+    action = input("Enter the action to perform (encrypt/decrypt): ").strip().lower()
+    output_path = input("Enter the path to save the output image: ")
+    
+    if action == 'encrypt':
+        encrypted_image = encrypt_image(image_path, shift_value, swap_value)
+        encrypted_image.save(output_path)
+        print(f"Encrypted image saved to {output_path}")
+    elif action == 'decrypt':
+        encrypted_image = Image.open(image_path)
+        decrypted_image = decrypt_image(encrypted_image, shift_value, swap_value)
+        decrypted_image.save(output_path)
+        print(f"Decrypted image saved to {output_path}")
+    else:
+        print("Invalid action. Please enter 'encrypt' or 'decrypt'.")
+
+if __name__ == "__main__":
+    main()
+
